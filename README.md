@@ -1,2 +1,1 @@
-# cassandra
-Cassandra
+# Cassandra
