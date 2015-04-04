@@ -34,8 +34,9 @@ Lets not talk about them, coz, I don't like them.
 ### Entities
 Entities (users/services/objects) are typically modeled using narrow, fixed set of columns.
 ### Time Series Data
-Time series data is modeled by chinking the time and each chunk is stored in a row with each column representing a time value.
-###
+Time series data is modeled by chunking the time and each chunk is stored in a row with each column representing a time value.
+### Event Modeling
+An object is modeled using a series of updates / a series of objects.
 
 ## Design Differences Between RDBMS and Cassandra
 ### Joins
@@ -45,6 +46,6 @@ Cassandra has no concept of referential integrity, and therefore has no concept 
 ### Sorting Is a Design Decision
 In RDBMS, you can easily change the order in which records are returned to you by using ORDER BY in your query. The default sort order is not configurable; by default, records are returned in the order in which they are written. If you want to change the order, you just modify your query, and you can sort by any list of columns. In Cassan- dra, however, sorting is treated differently; it is a design decision. Column family definitions include a CompareWith element, which dictates the order in which your rows will be sorted on reads, but this is not configurable per query.
 ### Denormalization
-In relational database design, we are often taught the importance of normalization. This is not an advantage when working with Cassandra because it performs best when the data model is denormalized. It is often the case that companies end up denormal- izing data in a relational database. There are two common reasons for this. One is Design Differences Between RDBMS and Cassandra | 57performance. Companies simply can’t get the performance they need when they have to do so many joins on years’ worth of data, so they denormalize along the lines of known queries. This ends up working, but goes against the grain of how relational databases are intended to be designed, and ultimately makes one question whether using a relational database is the best approach in these circumstances.
+In relational database design, we are often taught the importance of normalization. This is not an advantage when working with Cassandra because it performs best when the data model is denormalized. It is often the case that companies end up denormalizing data in a relational database. There are two common reasons for this. One is Design Differences Between RDBMS and Cassandra | 57performance. Companies simply can’t get the performance they need when they have to do so many joins on years’ worth of data, so they denormalize along the lines of known queries. This ends up working, but goes against the grain of how relational databases are intended to be designed, and ultimately makes one question whether using a relational database is the best approach in these circumstances.
 ### Secondary Indexes
 For traditional relational databases, secondary indexes work well with high cardinality.
