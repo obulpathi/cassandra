@@ -6,7 +6,7 @@
 * CREATE KEYSPACE app WITH REPLICATION = {'class': 'NetowrkTopologyStrategy', 'DC1': 3, 'DC2': 3};
 
 ## Create table
-* CREATE TABLE users (name varchar, city varchar, age int);
+* CREATE TABLE users (name varchar, city varchar, age int, PRMIMARY KEY(name, city));
 
 ## Describe commands
 * DESCRIBE KEYSPACES;
