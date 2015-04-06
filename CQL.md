@@ -27,7 +27,8 @@
 * SELECT WRITETIME(age) FROM users;
 
 ## Adding Columns to a table
-* ALTER TABLE users ADD year int
+* ALTER TABLE users ADD year int;
+* ALTER TABLE users DROP year;
 
 ## Change type of a table
 * ALTER TABLE users ALTER year TYPE varchar
