@@ -49,3 +49,105 @@ In RDBMS, you can easily change the order in which records are returned to you b
 In relational database design, we are often taught the importance of normalization. This is not an advantage when working with Cassandra because it performs best when the data model is denormalized. It is often the case that companies end up denormalizing data in a relational database. There are two common reasons for this. One is Design Differences Between RDBMS and Cassandra | 57performance. Companies simply can’t get the performance they need when they have to do so many joins on years’ worth of data, so they denormalize along the lines of known queries. This ends up working, but goes against the grain of how relational databases are intended to be designed, and ultimately makes one question whether using a relational database is the best approach in these circumstances.
 ### Secondary Indexes
 For traditional relational databases, secondary indexes work well with high cardinality.
+
+
+## Data Model Patterns
+### Time Series Data Model
+CREATE TABLE temperature (
+weatherstation_id text,
+event_time timestamp,
+temperature text,
+PRIMARY KEY (weatherstation_id,event_time)
+);
+
+
+
+Now we can insert a few data points for our weather station.
+
+INSERT INTO temperature(weatherstation_id,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03 07:01:00′,’72F’);
+
+INSERT INTO temperature(weatherstation_id,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03 07:02:00′,’73F’);
+
+INSERT INTO temperature(weatherstation_id,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03 07:03:00′,’73F’);
+
+INSERT INTO temperature(weatherstation_id,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03 07:04:00′,’74F’);
+
+
+
+A simple query looking for all data on a single weather station.
+
+SELECT event_time,temperature
+FROM temperature
+WHERE weatherstation_id=’1234ABCD’;
+
+
+
+A range query looking for data between two dates. This is also known as a slice since it will read a sequence of data from disk.
+
+SELECT temperature
+FROM temperature
+WHERE weatherstation_id=’1234ABCD’
+AND event_time > ’2013-04-03 07:01:00′
+AND event_time < ’2013-04-03 07:04:00′;
+
+### Row partitioned Time Series Data
+CREATE TABLE temperature_by_day (
+weatherstation_id text,
+date text,
+event_time timestamp,
+temperature text,
+PRIMARY KEY ((weatherstation_id,date),event_time)
+);
+
+
+
+Note the (weatherstation_id,date) portion. When we do that in the PRMARY KEY definition, the key will be compounded with the two elements. Now when we insert data, the key will group all weather data for a single day on a single row.
+
+INSERT INTO temperature_by_day(weatherstation_id,date,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03′,’2013-04-03 07:01:00′,’72F’);
+
+INSERT INTO temperature_by_day(weatherstation_id,date,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03′,’2013-04-03 07:02:00′,’73F’);
+
+INSERT INTO temperature_by_day(weatherstation_id,date,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-04′,’2013-04-04 07:01:00′,’73F’);
+
+INSERT INTO temperature_by_day(weatherstation_id,date,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-04′,’2013-04-04 07:02:00′,’74F’);
+
+
+
+To get all the weather data for a single day, we can query using both elements of the key.
+
+SELECT *
+FROM temperature_by_day
+WHERE weatherstation_id=’1234ABCD’
+AND date=’2013-04-03′;
+
+### Rolling Time Series
+CREATE TABLE latest_temperatures (
+weatherstation_id text,
+event_time timestamp,
+temperature text,
+PRIMARY KEY (weatherstation_id,event_time),
+) WITH CLUSTERING ORDER BY (event_time DESC);
+
+
+
+Now when we insert data. Note the TTL of 20 which means the data will expire in 20 seconds.
+
+INSERT INTO latest_temperatures(weatherstation_id,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03 07:03:00′,’72F’) USING TTL 20;
+
+INSERT INTO latest_temperatures(weatherstation_id,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03 07:02:00′,’73F’) USING TTL 20;
+
+INSERT INTO latest_temperatures(weatherstation_id,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03 07:01:00′,’73F’) USING TTL 20;
+
+INSERT INTO latest_temperatures(weatherstation_id,event_time,temperature)
+VALUES (’1234ABCD’,’2013-04-03 07:04:00′,’74F’) USING TTL 20;

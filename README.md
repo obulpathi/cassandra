@@ -7,3 +7,7 @@
 * Eventually Consistent
 * Dynamo based data distribution
 * Big Table based data model
+
+
+## Why Cassandra and why not something else?
+* 
